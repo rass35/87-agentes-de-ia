@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>77 Agentes de IA — Central de Acesso</title>
+  <style>
+    :root {
+      --bg1: #0e0f12;
+      --bg2: #16181d;
+      --card: #1b1e24;
+      --muted: #a7b0c0;
+      --brand: #00f5c8;
+      --brand-2: #48a0ff;
+      --ring: rgba(0, 245, 200, .35);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
+      color: #ffffff;
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(72,160,255,.12), transparent 60%),
+                  radial-gradient(1000px 500px at 110% 10%, rgba(0,245,200,.10), transparent 60%),
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+    }
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: linear-gradient(180deg, rgba(22,24,29,.95), rgba(22,24,29,.7));
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #242831;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .hero { display: grid; gap: 12px; align-items: center; grid-template-columns: 1fr; }
+    .title { font-size: clamp(26px, 4vw, 40px); line-height: 1.1; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .toolbar { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 10px; }
+    .search {
+      display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px;
+      background: #111319; border: 1px solid #242831; box-shadow: 0 0 0 0 var(--ring);
+      transition: box-shadow .2s ease;
+    }
+    .search:focus-within { box-shadow: 0 0 0 4px var(--ring); }
+    .search input {
+      flex: 1; background: transparent; border: 0; outline: none; color: #fff; font-size: 15px;
+    }
+    .btn {
+      appearance: none; border: 1px solid #2a2f39; color: #000; font-weight: 700; letter-spacing: .2px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: transform .15s ease, filter .2s;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .categories-nav { display: flex; gap: 10px; overflow: auto; padding: 10px 0; }
+    .chip { white-space: nowrap; border: 1px solid #2a2f39; color: #cfe8ff; background:#12141a; padding:8px 12px; border-radius:999px; cursor:pointer; font-size: 13px; }
+    .chip:hover { border-color: #39506b; }
+    main { max-width: 1200px; margin: 0 auto; padding: 28px 20px 60px; }
+    section.category { margin-top: 36px; }
+    h2.cat-title { font-size: clamp(18px, 2.6vw, 24px); display:flex; align-items:center; gap:10px; margin: 0 0 14px; }
+    h2.cat-title span.badge { font-size:12px; color:#0b0; background:rgba(0,245,200,.12); border:1px solid rgba(0,245,200,.35); padding:2px 8px; border-radius:999px }
+    .grid {
+      display: grid; gap: 14px;
+      grid-template-columns: repeat( auto-fit, minmax(240px, 1fr) );
+    }
+    a.card {
+      display: grid; gap: 8px; padding: 16px; text-decoration: none; color: #fff; border-radius: 14px;
+      background: linear-gradient(180deg, #12141a, #0f1116);
+      border: 1px solid #232734; position: relative; isolation: isolate; overflow: hidden;
+      transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    a.card:hover { transform: translateY(-2px); border-color: #2e3546; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    a.card .name { font-weight: 700; letter-spacing: .2px; }
+    a.card .caption { color: var(--muted); font-size: 13px; }
+    a.card::after {
+      content: ""; position: absolute; inset: -40% -40% auto auto; height: 120px; width: 160px;
+      background: radial-gradient(60px 60px at 80% 30%, rgba(0,245,200,.25), transparent),
+                  radial-gradient(80px 80px at 40% 60%, rgba(72,160,255,.18), transparent);
+      transform: rotate(25deg); filter: blur(16px); opacity:.6; pointer-events: none;
+    }
+    footer { max-width: 1200px; margin: 0 auto; padding: 40px 20px 80px; color: var(--muted); font-size: 13px; text-align: center; }
+    .back-top { position: fixed; right: 16px; bottom: 16px; padding: 12px 14px; border-radius: 999px; border:1px solid #2a2f39; background:#12141a; color:#dff; cursor:pointer; display:none }
+
+    /* Estilo do menu superior */
+    .menu {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 10px 0;
+      background: rgba(22, 24, 29, 0.8);
+      border-bottom: 1px solid #242831;
+    }
+    .menu ul {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      gap: 15px;
+    }
+    .menu li {
+      margin: 0;
+    }
+    .menu a {
+      color: #cfe8ff;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
+    .menu a:hover {
+      background-color: rgba(72, 160, 255, 0.2);
+    }
+    .menu-button {
+      background-color: #ff6600;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+    .menu-button:hover {
+      background-color: #e65c00;
+    }
+  </style>
+</head>
+<body>
+  <!-- Menu Superior -->
+  <nav class="menu">
+    <ul>
+      
+        <a href="https://docs.google.com/document/d/16ffyckTjG1tCNsE05mO3HvxgU0peJCQpOFrWVPEd4Bo/edit?tab=t.0"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="menu-button">
+          300 Prompts para ChatGPT
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Conteúdo Principal -->
+  <header>
+    <div class="wrap">
+      <div class="hero">
+        <div>
+          <div class="title">🌟 77 Agentes de IA</div>
+          <div class="subtitle">Acesse rapidamente agentes por categoria. Use a busca para filtrar por nome ou função.</div>
+        </div>
+        <div class="toolbar">
+          <label class="search" aria-label="Buscar agentes">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.2-4.2M10.8 18.6a7.8 7.8 0 1 1 0-15.6 7.8 7.8 0 0 1 0 15.6Z" stroke="#7f8ea3" stroke-width="2" stroke-linecap="round"/></svg>
+            <input id="q" type="search" placeholder="Buscar por agente, ex: SEO, Instagram, Podcast…" />
+          </label>
+          <button class="btn" id="clearBtn" title="Limpar busca">Limpar</button>
+        </div>
+        <div class="categories-nav" id="catNav"></div>
+      </div>
+    </div>
+  </header>
+
+  <main id="catalog">
+
+    <!-- AGENTES SÊNIORS -->
+    <section class="category" id="agentes-seniors">
+      <h2 class="cat-title">🤖 AGENTES SÊNIORS <span class="badge">6</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67bb3c0a3b448191a2bb0f7ebe54f9ba-icaro-seu-guru-de-marketing-digital"><span class="name">Ícaro</span><span class="caption">Guru de Marketing Digital</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67bbdd0d332881919f919a76b83e431e-tony-seu-mestre-das-palavras"><span class="name">Tony</span><span class="caption">Mestre das Palavras</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67bbdf832b948191bbf246b8741c9c16-tom-seu-conselheiro-estrategico"><span class="name">Tom</span><span class="caption">Conselheiro Estratégico</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67bbe0b897188191a65273153cbc57de-rodrigo-seu-super-heroi-de-rh"><span class="name">Rodrigo</span><span class="caption">Super-Herói de RH</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67bbe2f8d2948191b67bdb895f7edf72-olga-sua-maga-das-planilhas"><span class="name">Olga</span><span class="caption">Maga das Planilhas</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67c4f2a031048191826402cf47782a0b-superprompt"><span class="name">SuperPrompt</span><span class="caption">Agente de prompts avançados</span></a>
+      </div>
+    </section>
+
+    <!-- CRIAÇÃO DE CONTEÚDO (Redes Sociais) -->
+    <section class="category" id="criacao-conteudo">
+      <h2 class="cat-title">📱 CRIAÇÃO DE CONTEÚDO (Redes Sociais) <span class="badge">5</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674d4070248191bc9f47e2a4f2a98f-agente-brainstorm"><span class="name">Agente Brainstorm</span><span class="caption">Ideias criativas rápidas</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674d99c63c8191b32698b8cab4c321-agente-hashtag-finder"><span class="name">Hashtag Finder</span><span class="caption">Hashtags para alcance</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674de93bf48191931a2542faca456e-agente-grafico-pro"><span class="name">Gráfico Pro</span><span class="caption">Artes e criativos</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6750ed8f06ec8191b0d19bef138e9259-robo-estrategico-criacao-de-personas"><span class="name">Criação de Personas</span><span class="caption">Avatar ideal do público</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6750f4164fcc8191b6cbfdcf43db392d-social-media-robo"><span class="name">Social Media Robô</span><span class="caption">Calendário e conteúdo</span></a>
+      </div>
+    </section>
+
+    <!-- Youtube -->
+    <section class="category" id="youtube">
+      <h2 class="cat-title">🎥 YouTube <span class="badge">5</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673549794c8191b88b1b78292fe36d-agente-seo-videos"><span class="name">SEO Vídeos</span><span class="caption">Otimização para YouTube</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6767346cb1148191924ea84308949bd9-agente-roteirista-videos"><span class="name">Roteirista de Vídeos</span><span class="caption">Roteiros envolventes</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673592209081919f02e18198037ab1-agente-titulos-matadores"><span class="name">Títulos Matadores</span><span class="caption">Click-through irresistível</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676735f5315481918d88020a64806700-agente-thumbnail-pro"><span class="name">Thumbnail Pro</span><span class="caption">Capas que convertem</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-g24EzkDta-voxscript"><span class="name">VoxScript</span><span class="caption">Ferramenta auxiliar</span></a>
+      </div>
+    </section>
+
+    <!-- TikTok e Instagram -->
+    <section class="category" id="tiktok-instagram">
+      <h2 class="cat-title">📲 TikTok e Instagram <span class="badge">5</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673eb98838819193430a37f7b3b1b9-agente-publico-insta"><span class="name">Público Insta</span><span class="caption">Segmentação de audiência</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673d3f08c48191ae985104a11a9670-agente-engajamento"><span class="name">Engajamento</span><span class="caption">Comentários & interações</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676763853d488191a5b4aff0c7940556-publico-pro"><span class="name">Público Pro</span><span class="caption">Perfis ideais</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673ceaef848191bb3944336f90de9c-criador-de-ideias-virais"><span class="name">Ideias Virais</span><span class="caption">Tendências e ganchos</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6750f73857b88191b0cedbb4775a5b90-titulos-virais"><span class="name">Títulos Virais</span><span class="caption">Headlines para Reels</span></a>
+      </div>
+    </section>
+
+    <!-- Email Marketing PRO -->
+    <section class="category" id="email-marketing">
+      <h2 class="cat-title">✉️ Email Marketing PRO <span class="badge">4</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67672a92cf0c819183906af64fabb5c3-agente-email-vendas"><span class="name">Email Vendas</span><span class="caption">Sequências que convertem</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67672ca14aa481918221c1ad7c536db3-agente-bem-vindo"><span class="name">Bem-vindo</span><span class="caption">Onboarding por email</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67672d8424888191b168bf190a9e3e7c-agente-recupera-carrinho"><span class="name">Recupera Carrinho</span><span class="caption">Recuperação de vendas</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673026f4c88191ab5750b045f5240a-agente-assunto-perfeito"><span class="name">Assunto Perfeito</span><span class="caption">A/B de assuntos</span></a>
+      </div>
+    </section>
+
+    <!-- Linkedin -->
+    <section class="category" id="linkedin">
+      <h2 class="cat-title">💼 LinkedIn <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674136a1748191b94bb2c938b0e227-agente-perfil-pro"><span class="name">Perfil Pro</span><span class="caption">Otimize seu perfil</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6767417b8c04819192aac2181919fb31-agente-conteudo-profissional"><span class="name">Conteúdo Profissional</span><span class="caption">Posts para autoridade</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674201e67c8191aee8ac1f88ce25aa-agente-anuncios-b2b"><span class="name">Anúncios B2B</span><span class="caption">Campanhas no LinkedIn</span></a>
+      </div>
+    </section>
+
+    <!-- Twitter/X -->
+    <section class="category" id="twitter-x">
+      <h2 class="cat-title">🐦 Twitter/X <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674a1670888191bdb351515035e668-agente-thread-viral"><span class="name">Thread Viral</span><span class="caption">Fios que engajam</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674a60538881918a0f5f551ad160c2-agente-crescimento"><span class="name">Crescimento</span><span class="caption">Estratégias de alcance</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674ab007d48191a181afea10daec68-agente-de-anuncios"><span class="name">Anúncios</span><span class="caption">Ads no X</span></a>
+      </div>
+    </section>
+
+    <!-- Marketing e Podcasts -->
+    <section class="category" id="podcasts">
+      <h2 class="cat-title">🎙️ Marketing e Podcasts <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674fb0fb888191acab1bba20bc898a-agente-entrevistador-pro"><span class="name">Entrevistador Pro</span><span class="caption">Perguntas certeiras</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674fedb0408191b5c1f0468e76e813-agente-roteirista-podcast"><span class="name">Roteirista Podcast</span><span class="caption">Estrutura de episódios</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6767502ae3648191945c2e25bc9a225b-agente-convite-podcast"><span class="name">Convite Podcast</span><span class="caption">Convites & outreach</span></a>
+      </div>
+    </section>
+
+    <!-- Ads Meta -->
+    <section class="category" id="ads-meta">
+      <h2 class="cat-title">📣 Anúncios no Instagram/Facebook (Meta) <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676750a74164819195a13ac18bdc811e-agente-copy-ads"><span class="name">Copy Ads</span><span class="caption">Copys que vendem</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6767513da58c81919f16cec9d88d600e-agente-criativo-pro"><span class="name">Criativo Pro</span><span class="caption">Ideias para criativos</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676751799e3881919ab8acf3bf4f3702-agente-a-b-test"><span class="name">A/B Test</span><span class="caption">Experimentos e variações</span></a>
+      </div>
+    </section>
+
+    <!-- NEGÓCIOS ONLINE -->
+    <section class="category" id="negocios-online">
+      <h2 class="cat-title">🧩 NEGÓCIOS ONLINE <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673734f7d48191abd7ef42451e8aac-copyboost"><span class="name">CopyBoost</span><span class="caption">Impulsione sua copy</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676736568c8c8191b02cefe88b733c66-copymaster"><span class="name">CopyMaster</span><span class="caption">Domine persuasão</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676736e88f08819190feb82932e2bcc0-agente-call-to-action"><span class="name">Call to Action</span><span class="caption">CTAs de alta conversão</span></a>
+      </div>
+    </section>
+
+    <!-- Manual dos Negócios -->
+    <section class="category" id="manual-negocios">
+      <h2 class="cat-title">📘 Manual dos Negócios <span class="badge">4</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676737a615348191bba320222502ff14-agente-businessplan"><span class="name">Business Plan</span><span class="caption">Plano de negócios</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676739db4a2081918e958c968c261a0d-agente-visao-clara"><span class="name">Visão Clara</span><span class="caption">Direção estratégica</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673ab95e348191835eb5a4f7ac05d4-agente-estrategico-pro"><span class="name">Estratégico Pro</span><span class="caption">Planejamento tático</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6793e1e38b848191ba9dabdf39fca12f-agente-rh-master"><span class="name">RH Master</span><span class="caption">Pessoas & RH</span></a>
+      </div>
+    </section>
+
+    <!-- Funil Online Lucrativo -->
+    <section class="category" id="funil-online">
+      <h2 class="cat-title">🧪 Funil Online Lucrativo <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673b87de5881918505662d58e3d8e2-agente-funil-criativo"><span class="name">Funil Criativo</span><span class="caption">Arquitetura do funil</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673bc2d61c81918acb203ddbbbf890-agente-landing-page"><span class="name">Landing Page</span><span class="caption">Páginas que convertem</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67673c3b47848191b6bf20bbd19d6781-agente-upsell-master"><span class="name">Upsell Master</span><span class="caption">Aumento de ticket</span></a>
+      </div>
+    </section>
+
+    <!-- Marketing para Afiliados -->
+    <section class="category" id="afiliados">
+      <h2 class="cat-title">🤝 Marketing para Afiliados <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674385e46881919987abe97c83a9c1-agente-afiliado-copy"><span class="name">Afiliado Copy</span><span class="caption">Copy para afiliados</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676743f92b648191a76768f42fa82d72-agente-comparador-pro"><span class="name">Comparador Pro</span><span class="caption">Análises e comparativos</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6767444496d08191824c43c416ab22bc-agente-recomendador"><span class="name">Recomendador</span><span class="caption">Sugestões inteligentes</span></a>
+      </div>
+    </section>
+
+    <!-- Funil de SMS -->
+    <section class="category" id="sms">
+      <h2 class="cat-title">📲 Funil de SMS <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674be322948191a74f868df406a83d-agente-lead-sms"><span class="name">Lead SMS</span><span class="caption">Captação via SMS</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674b4d51308191a77a5f6a34f6618c-agente-sms-promo"><span class="name">SMS Promo</span><span class="caption">Promoções e ofertas</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674b9476688191b428941096db4464-agente-follow-up"><span class="name">Follow-up</span><span class="caption">Nutrição de leads</span></a>
+      </div>
+    </section>
+
+    <!-- Atendimento ao Cliente Turbinado -->
+    <section class="category" id="atendimento">
+      <h2 class="cat-title">💬 Atendimento ao Cliente Turbinado <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674c2ddadc81919e16a8c5beb27425-agente-faq-pro"><span class="name">FAQ Pro</span><span class="caption">Base de conhecimento</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674ca77fbc8191a03918f264445d42-agente-feedback-pro"><span class="name">Feedback Pro</span><span class="caption">Coleta de feedback</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674cfaaddc8191a8f021f852026fd1-agente-retencao-master"><span class="name">Retenção Master</span><span class="caption">Redução de churn</span></a>
+      </div>
+    </section>
+
+    <!-- Website & Ecommerce -->
+    <section class="category" id="ecommerce">
+      <h2 class="cat-title">🛒 Website & Ecommerce <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674ed676f88191ab6afc8b7b9d96e2-agente-descricao-pro"><span class="name">Descrição Pro</span><span class="caption">Descrições que vendem</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674f206e888191ab4934aa7e0332de-agente-seo-site"><span class="name">SEO Site</span><span class="caption">Otimização on-page</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67674f5e575081918def28fc9e47452f-agente-testemunhos-pro"><span class="name">Testemunhos Pro</span><span class="caption">Provas sociais</span></a>
+      </div>
+    </section>
+
+    <!-- SEO -->
+    <section class="category" id="seo">
+      <h2 class="cat-title">🔍 SEO <span class="badge">3</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6767561063c481919b7b0414e4f55cf8-agente-palavra-chave"><span class="name">Palavra-Chave</span><span class="caption">Pesquisa e clusters</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67675b94235481919eba726b6a759717-agente-post-atrativo"><span class="name">Post Atraente</span><span class="caption">SEO para blogs</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67675cbeca088191abf9f6f1adbe474c-agente-calendario-seo"><span class="name">Calendário SEO</span><span class="caption">Planejamento editorial</span></a>
+      </div>
+    </section>
+
+    <!-- Bônus Robôs -->
+    <section class="category" id="bonus">
+      <h2 class="cat-title">🎁 BÔNUS ROBÔS <span class="badge">8</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6750f060ae18819180433e7b1aa4b998-negociador-salarial"><span class="name">Negociador Salarial</span><span class="caption">Negociação de propostas</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-2mqMPjvcZ-meta-prompt-lendario"><span class="name">Meta Prompt Lendário</span><span class="caption">Prompts poderosos</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676761e39bc08191868b0d801dae75e9-pitchmaster"><span class="name">PitchMaster</span><span class="caption">Pitches de impacto</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67675cbeca088191abf9f6f1adbe474c-agente-calendario-seo"><span class="name">Calendário SEO</span><span class="caption">(extra)</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67676168ed288191bcdda81e101fe65b-delegador-pro"><span class="name">Delegador Pro</span><span class="caption">Distribuição de tarefas</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-676763171358819198be8a247a718012-agente-resposta-rapida"><span class="name">Resposta Rápida</span><span class="caption">Atalhos de resposta</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-67676019bd94819186fa7fd79af3ee98-content-builder"><span class="name">Content Builder</span><span class="caption">Blocos de conteúdo</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-6750f62020bc819196cc245d88bc2a5c-posts-virais"><span class="name">Posts Virais</span><span class="caption">Templates de viralização</span></a>
+      </div>
+    </section>
+
+    <!-- 13 Robôs Especialistas em Redes Sociais -->
+    <section class="category" id="robos-redes">
+      <h2 class="cat-title">🧠 13 Robôs Especialistas em Redes Sociais <span class="badge">13</span></h2>
+      <div class="grid">
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-YUkoF5mWZ-logos-copfy"><span class="name">Logos Copfy</span><span class="caption">Identidade visual</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-GhVErcNGc-analise-de-perfil"><span class="name">Análise de Perfil</span><span class="caption">Auditoria de perfil</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-Qj1J1lbh0-gerador-de-personas"><span class="name">Gerador de Personas</span><span class="caption">Perfis detalhados</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-IA6O0Po2N-carrossel-news"><span class="name">Carrossel News</span><span class="caption">Notícias em carrossel</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-zqOy26owc-reels-de-processo"><span class="name">Reels de Processo</span><span class="caption">Bastidores & making-of</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-leMTm5jgC-reels-de-desejo"><span class="name">Reels de Desejo</span><span class="caption">Apelo emocional</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-gwaku8hot-gerador-de-bio"><span class="name">Gerador de Bio</span><span class="caption">Bio persuasiva</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-leMTm5jgC-reels-de-desejo"><span class="name">Reels de Desejo (2)</span><span class="caption">Link repetido conforme lista</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-3gy1utgT4-legendas-automaticas"><span class="name">Legendas Automáticas</span><span class="caption">Subtítulos rápidos</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-outjsJqdJ-ideias-de-posts"><span class="name">Ideias de Posts</span><span class="caption">Brainstorming de posts</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-HoEqLi4ju-carrossel-dicas"><span class="name">Carrossel Dicas</span><span class="caption">Dicas em slides</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-HLhKi1FHa-roteiro-reels-dicas"><span class="name">Roteiro Reels Dicas</span><span class="caption">Scripts objetivos</span></a>
+        <a class="card" target="_blank" rel="noopener" href="https://chatgpt.com/g/g-DJMuYM3Aj-linhas-editoriais"><span class="name">Linhas Editoriais</span><span class="caption">Pilares de conteúdo</span></a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    Feito com ❤ para facilitar seu acesso aos melhores agentes.
+  </footer>
+
+  <button class="back-top" id="backTop" aria-label="Voltar ao topo">↑</button>
+
+  <script>
+    // Gera navegação de categorias
+    const nav = document.getElementById('catNav');
+    const sections = [...document.querySelectorAll('section.category')];
+    sections.forEach(sec => {
+      const id = sec.id;
+      const title = sec.querySelector('.cat-title').textContent.replace(/\s+\d+$/, '').trim();
+      const a = document.createElement('a');
+      a.textContent = title; a.className = 'chip'; a.href = `#${id}`;
+      nav.appendChild(a);
+    });
+
+    // Busca por texto
+    const input = document.getElementById('q');
+    const clearBtn = document.getElementById('clearBtn');
+    const cards = [...document.querySelectorAll('a.card')];
+
+    function filterCards() {
+      const q = input.value.trim().toLowerCase();
+      cards.forEach(c => {
+        const text = (c.textContent || '').toLowerCase();
+        c.style.display = text.includes(q) ? '' : 'none';
+      });
+      // Oculta seções vazias
+      sections.forEach(sec => {
+        const visible = [...sec.querySelectorAll('a.card')].some(el => el.style.display !== 'none');
+        sec.style.display = visible ? '' : 'none';
+      });
+    }
+    input.addEventListener('input', filterCards);
+    clearBtn.addEventListener('click', () => { input.value = ''; filterCards(); input.focus(); });
+
+    // Botão voltar ao topo
+    const backTop = document.getElementById('backTop');
+    window.addEventListener('scroll', () => {
+      backTop.style.display = window.scrollY > 400 ? 'block' : 'none';
+    });
+    backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  </script>
+</body>
+</html>
